@@ -90,3 +90,34 @@ func TestHeapSort(t *testing.T) {
 func TestQuickSort(t *testing.T) {
 	panic("TODO: Implement QuickSort Sort")
 }
+
+func TestNumericSort(t *testing.T) {
+	testCases := []struct {
+		seq      []int
+		expected []int
+	}{
+		{
+			seq:      []int{47, 9, 13, 20, 1},
+			expected: []int{1, 9, 13, 20, 47},
+		},
+		{
+			seq:      []int{3, 2, 4, 1, 9},
+			expected: []int{1, 2, 3, 4, 9},
+		},
+		// {
+		// 	seq:      []int{},
+		// 	i:        0,
+		// 	j:        2,
+		// 	expected: ,
+		// },
+	}
+	for index, test_case := range testCases {
+		t.Run(fmt.Sprintf("test %d - TwoSum should return expected output", index), func(t *testing.T) {
+			SortNumerics(test_case.seq)
+
+			if !Equal(test_case.seq, test_case.expected) {
+				t.Errorf("expected : '%+v' got : %+v", test_case.expected, test_case.seq)
+			}
+		})
+	}
+}
