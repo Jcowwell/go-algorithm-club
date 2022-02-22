@@ -1,8 +1,6 @@
-![Swift Algorithm Club](Images/SwiftAlgorithm-410-transp.png)
+# Welcome to the Go Algorithm Club!
 
-# Welcome to the Swift Algorithm Club!
-
-Here you'll find implementations of popular algorithms and data structures in everyone's favorite new language Swift, with detailed explanations of how they work.
+Here you'll find implementations of popular algorithms and data structures in Go, with detailed explanations of how they work. Based on the popular [Swift Algorithm Club](https://github.com/Jcowwell/go-algorithm-club)
 
 If you're a computer science student who needs to learn this stuff for exams -- or if you're a self-taught programmer who wants to brush up on the theory behind your craft -- you've come to the right place!
 
