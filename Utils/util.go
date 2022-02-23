@@ -1,7 +1,9 @@
 package util
 
 import (
-	"constraints"
+	"unsafe"
+
+	"golang.org/x/exp/constraints"
 )
 
 func Equal[T constraints.Ordered](a, b []T) bool {
@@ -17,4 +19,10 @@ func Equal[T constraints.Ordered](a, b []T) bool {
 		}
 	}
 	return true
+}
+
+func Hash[A comparable](a A) uintptr {
+	var m interface{} = make(map[A]struct{})
+	hf := (*mh)(*(*unsafe.Pointer)(unsafe.Pointer(&m))).hf
+	return hf(unsafe.Pointer(&a), 0)
 }
