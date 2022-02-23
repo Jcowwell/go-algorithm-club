@@ -10,6 +10,10 @@ type Numeric interface {
 	constraints.Float | constraints.Integer
 }
 
+type Transform[T, U any] func(T) U
+
+type Predicate[T any] func(T) bool
+
 ///////////////////////////
 /// stolen from runtime ///
 ///////////////////////////

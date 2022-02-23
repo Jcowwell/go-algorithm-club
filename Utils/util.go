@@ -26,3 +26,7 @@ func Hash[A comparable](a A) uintptr {
 	hf := (*mh)(*(*unsafe.Pointer)(unsafe.Pointer(&m))).hf
 	return hf(unsafe.Pointer(&a), 0)
 }
+
+func Swap[T any](x, y *T) {
+	*x, *y = *y, *x
+}
