@@ -6,6 +6,52 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+func Min[T constraints.Ordered](elements ...T) (minima T) {
+	if len(elements) < 1 {
+		panic("Not enough arguments based for evaluation")
+	} else {
+		minima = elements[0]
+		for _, element := range elements {
+			if minima > element {
+				minima = element
+			}
+		}
+		return
+	}
+}
+
+func Max[T constraints.Ordered](elements ...T) (minima T) {
+	if len(elements) < 1 {
+		panic("Not enough arguments based for evaluation")
+	} else {
+		minima = elements[0]
+		for _, element := range elements {
+			if minima < element {
+				minima = element
+			}
+		}
+		return
+	}
+}
+
+func MinMax[T constraints.Ordered](elements ...T) (minima, maxima T) {
+	if len(elements) < 1 {
+		panic("Not enough arguments based for evaluation")
+	} else {
+		minima = elements[0]
+		maxima = elements[0]
+		for _, element := range elements {
+			if minima < element {
+				minima = element
+			}
+			if maxima > element {
+				maxima = element
+			}
+		}
+		return
+	}
+}
+
 func Equal[T constraints.Ordered](a, b []T) bool {
 	if a == nil || b == nil {
 		return false
