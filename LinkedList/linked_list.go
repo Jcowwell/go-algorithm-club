@@ -21,7 +21,7 @@ type LinkedList[T any] struct {
 	head *LinkedListNode[T] // The head of the Linked List
 }
 
-// Method to check if list is empty
+// Method to check if list is empty.
 func (self *LinkedList[T]) isEmpty() bool {
 	return self.head == nil
 }
@@ -77,7 +77,7 @@ func (self *LinkedList[T]) nodeAt(index int) *LinkedListNode[T] {
 	}
 }
 
-// Append a copy of a LinkedListNode to the end of the list.
+// Method to append a copy of a LinkedListNode to the end of the list.
 func (self *LinkedList[T]) appendNode(node *LinkedListNode[T]) {
 	if self.isEmpty() {
 		self.head = node
@@ -88,7 +88,7 @@ func (self *LinkedList[T]) appendNode(node *LinkedListNode[T]) {
 	}
 }
 
-// Append a value to the end of the list.
+// Method to append a value to the end of the list.
 func (self *LinkedList[T]) appendValue(value T) {
 	node := LinkedListNodeInit(value)
 	self.appendNode(node)
