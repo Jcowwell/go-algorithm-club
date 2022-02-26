@@ -5,12 +5,16 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+// Tranversal methods are based on Rosetta Code: https://rosettacode.org/wiki/Tree_traversal#Flat_slice
+
+// Binary Tree's Node Struct
 type BinaryTreeNode[T constraints.Ordered] struct {
+	value T
 	left  *BinaryTreeNode[T]
 	right *BinaryTreeNode[T]
-	value T
 }
 
+// Method to return the largest # of edges in a path from the node to a leaf node.
 func (BTN *BinaryTreeNode[T]) height() int {
 	left, right := BTN.left, BTN.right
 
@@ -24,6 +28,7 @@ func (BTN *BinaryTreeNode[T]) height() int {
 	return 1
 }
 
+// Method to iterate node in preorder order (node, left, right)
 func (BTN *BinaryTreeNode[T]) iterPreOrder(process func(T)) {
 	if BTN == nil {
 		return
@@ -34,6 +39,7 @@ func (BTN *BinaryTreeNode[T]) iterPreOrder(process func(T)) {
 	BTN.right.iterPreOrder(process)
 }
 
+// Method to iterate node in inorder order (left, node, right)
 func (BTN *BinaryTreeNode[T]) iterInOrder(process func(T)) {
 	if BTN == nil {
 		return
@@ -44,6 +50,7 @@ func (BTN *BinaryTreeNode[T]) iterInOrder(process func(T)) {
 	BTN.right.iterInOrder(process)
 }
 
+// Method to iterate node in postorder order (left, right, node)
 func (BTN *BinaryTreeNode[T]) iterPostOrder(process func(T)) {
 	if BTN == nil {
 		return
@@ -54,6 +61,7 @@ func (BTN *BinaryTreeNode[T]) iterPostOrder(process func(T)) {
 	process(BTN.value)
 }
 
+// Method to reverse node (left, node, right) -> (right, node, left)
 func (BTN *BinaryTreeNode[T]) invert() {
 	left, right := BTN.left, BTN.right
 	left, right = right, left
@@ -61,10 +69,12 @@ func (BTN *BinaryTreeNode[T]) invert() {
 	right.invert()
 }
 
+// Binary Tree Struct
 type BinaryTree[T constraints.Ordered] struct {
 	root *BinaryTreeNode[T]
 }
 
+// Method to return the largest # of edges in a path from the tree's root to a leaf node.
 func (BT *BinaryTree[T]) height() int {
 	root := BT.root
 
@@ -75,8 +85,8 @@ func (BT *BinaryTree[T]) height() int {
 	return -1
 }
 
-// Based on Rosetta Code: https://rosettacode.org/wiki/Tree_traversal#Flat_slice
-func (BT *BinaryTree[T]) TranversePreOrder(process func(T)) {
+// Method to iterate tree in preorder order (node, left, right)
+func (BT *BinaryTree[T]) tranversePreOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
 		return
@@ -84,7 +94,8 @@ func (BT *BinaryTree[T]) TranversePreOrder(process func(T)) {
 	root.iterPreOrder(process)
 }
 
-func (BT *BinaryTree[T]) TranverseInOrder(process func(T)) {
+// Method to iterate node in inorder order (left, node, right)
+func (BT *BinaryTree[T]) tranverseInOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
 		return
@@ -92,7 +103,8 @@ func (BT *BinaryTree[T]) TranverseInOrder(process func(T)) {
 	root.iterInOrder(process)
 }
 
-func (BT *BinaryTree[T]) TranversePostOrder(process func(T)) {
+// Method to iterate node in postorder order (left, right, node)
+func (BT *BinaryTree[T]) tranversePostOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
 		return
@@ -100,7 +112,8 @@ func (BT *BinaryTree[T]) TranversePostOrder(process func(T)) {
 	root.iterPostOrder(process)
 }
 
-func (BT *BinaryTree[T]) TranverseLevelOrder(process func(T)) {
+// Method to iterate node in postorder order (left, right, node)
+func (BT *BinaryTree[T]) tranverseLevelOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
 		return
@@ -124,6 +137,7 @@ func (BT *BinaryTree[T]) TranverseLevelOrder(process func(T)) {
 	}
 }
 
+// Method to invert tree
 func (BT *BinaryTree[T]) invert() {
 	root := BT.root
 	if root == nil {
@@ -132,19 +146,21 @@ func (BT *BinaryTree[T]) invert() {
 	root.invert()
 }
 
-func EqualTree[T constraints.Ordered](p, q *BinaryTree[T]) bool {
-	if p == nil && q == nil {
-		return true
-	}
-	return EqualNode(p.root, q.root)
-}
-
-func EqualNode[T constraints.Ordered](p, q *BinaryTreeNode[T]) bool {
+// Function that comapres two binary tree and returns true if they're equal false otherwise
+func equalNode[T constraints.Ordered](p, q *BinaryTreeNode[T]) bool {
 	if p == nil && q == nil {
 		return true
 	}
 	if p == nil || q == nil || p.value != q.value {
 		return false
 	}
-	return EqualNode(p.left, q.right) && EqualNode(p.right, q.right)
+	return equalNode(p.left, q.right) && equalNode(p.right, q.right)
+}
+
+// Function that comapres two nodes and returns true if they're equal false otherwise
+func EqualTree[T constraints.Ordered](p, q *BinaryTree[T]) bool {
+	if p == nil && q == nil {
+		return true
+	}
+	return equalNode(p.root, q.root)
 }
