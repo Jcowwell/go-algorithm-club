@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -33,6 +34,22 @@ func AssertEqual[T comparable](value, expected T, t *testing.T) {
 	})
 }
 
+func AssertEqualSlice[T comparable](value, expected []T, t *testing.T) {
+	t.Run(fmt.Sprintf("AssertEqualSlice - %v == %v", value, expected), func(t *testing.T) {
+		if !reflect.DeepEqual(value, expected) {
+			t.Error(preFormattedErrorString(expected, value))
+		}
+	})
+}
+
+func AssertNotEqualSlice[T comparable](value, expected []T, t *testing.T) {
+	t.Run(fmt.Sprintf("AssertNotEqualSlice - %v != %v", value, expected), func(t *testing.T) {
+		if reflect.DeepEqual(value, expected) {
+			t.Error(preFormattedErrorString(expected, value))
+		}
+	})
+}
+
 func AssertNotEqual[T comparable](value, expected T, t *testing.T) {
 	t.Run(fmt.Sprintf("AssertNotEqual - %v != %v", value, expected), func(t *testing.T) {
 		if value == expected {
@@ -51,7 +68,7 @@ func AssertNil[T comparable](value *T, t *testing.T) {
 }
 
 func AssertNotNil[T comparable](value *T, t *testing.T) {
-	t.Run(fmt.Sprintf("AssertNil - %v", value), func(t *testing.T) {
+	t.Run(fmt.Sprintf("AssertNotNil - %v", value), func(t *testing.T) {
 		if value == nil {
 			t.Error(preFormattedErrorString("not nil", "nil"))
 		}

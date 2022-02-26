@@ -76,3 +76,7 @@ func Hash[A comparable](a A) uintptr {
 func Swap[T any](x, y *T) {
 	*x, *y = *y, *x
 }
+
+func Filler[T any](f T) T {
+	return f
+}
