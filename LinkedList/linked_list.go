@@ -194,7 +194,7 @@ func (self *LinkedList[T]) reverse() {
 	for node := self.head; node != nil; {
 		currentNode := node
 		node = currentNode.next
-		Swap(&currentNode.next, &currentNode.prev)
+		currentNode.next, currentNode.prev = currentNode.prev, currentNode.next
 		self.head = currentNode
 	}
 }
