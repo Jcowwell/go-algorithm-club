@@ -34,12 +34,3 @@ type mh struct {
 	_  unsafe.Pointer
 	hf func(unsafe.Pointer, uintptr) uintptr
 }
-
-// Tree Node Interface
-type TreeNode[T constraints.Ordered] interface {
-	count()
-	height() int
-	depth() int
-	isRoot() bool
-	isLeaf() bool
-}
