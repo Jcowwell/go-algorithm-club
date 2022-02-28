@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/Jcowwell/go-algorithm-club/Utils"
+	. "golang.org/x/exp/slices"
 )
 
 func TestTwoSum(t *testing.T) {
@@ -37,7 +37,7 @@ func TestTwoSum(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 
-			if !Equal(addends[:], test_case.expected) {
+			if !Equal(addends, test_case.expected) {
 				t.Errorf("expected '%+v' to equal '%+v', but it did not", addends, test_case.expected)
 			}
 		})
