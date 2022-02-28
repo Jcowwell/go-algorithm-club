@@ -3,6 +3,8 @@ package util
 import (
 	"fmt"
 	"testing"
+
+	. "golang.org/x/exp/slices"
 )
 
 func TestLess(t *testing.T) {
@@ -33,7 +35,7 @@ func TestLess(t *testing.T) {
 	}
 	for index, test_case := range testCases {
 		t.Run(fmt.Sprintf("test %d - TwoSum should return expected output", index), func(t *testing.T) {
-			result := less(test_case.seq[:], test_case.i, test_case.j)
+			result := less(test_case.seq, test_case.i, test_case.j)
 
 			if result != test_case.expected {
 				t.Errorf("expected : '%+v' got : %+v", test_case.expected, result)
@@ -70,7 +72,7 @@ func TestSwap(t *testing.T) {
 	}
 	for index, test_case := range testCases {
 		t.Run(fmt.Sprintf("test %d - TwoSum should return expected output", index), func(t *testing.T) {
-			swap(test_case.seq[:], test_case.i, test_case.j)
+			swap(test_case.seq, test_case.i, test_case.j)
 
 			if !Equal(test_case.seq, test_case.expected) {
 				t.Errorf("expected : '%+v' got : %+v", test_case.expected, test_case.seq)
