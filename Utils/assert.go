@@ -2,8 +2,9 @@ package util
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
+
+	. "golang.org/x/exp/slices"
 )
 
 func preFormattedErrorString[T any](expected, got T) string {
@@ -36,7 +37,7 @@ func AssertEqual[T comparable](value, expected T, t *testing.T) {
 
 func AssertEqualSlice[T comparable](value, expected []T, t *testing.T) {
 	t.Run(fmt.Sprintf("AssertEqualSlice - %v == %v", value, expected), func(t *testing.T) {
-		if !reflect.DeepEqual(value, expected) {
+		if !Equal(value, expected) {
 			t.Error(preFormattedErrorString(expected, value))
 		}
 	})
@@ -44,7 +45,7 @@ func AssertEqualSlice[T comparable](value, expected []T, t *testing.T) {
 
 func AssertNotEqualSlice[T comparable](value, expected []T, t *testing.T) {
 	t.Run(fmt.Sprintf("AssertNotEqualSlice - %v != %v", value, expected), func(t *testing.T) {
-		if reflect.DeepEqual(value, expected) {
+		if Equal(value, expected) {
 			t.Error(preFormattedErrorString(expected, value))
 		}
 	})
