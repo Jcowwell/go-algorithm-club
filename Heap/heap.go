@@ -1,10 +1,6 @@
 package heap
 
-import (
-	"golang.org/x/exp/constraints"
-)
-
-type Heap[T constraints.Ordered] struct {
+type Heap[T comparable] struct {
 	nodes         []T             // The array that stores the heap's nodes.
 	orderCriteria func(T, T) bool // Determines how to compare two nodes in the heap.
 }
@@ -14,7 +10,7 @@ Creates an empty heap.
 The sort function determines whether this is a min-heap or max-heap.
 For comparable data types, > makes a max-heap, < makes a min-heap.
 */
-func HeapInit[T constraints.Ordered](sort func(T, T) bool) *Heap[T] {
+func HeapInit[T comparable](sort func(T, T) bool) *Heap[T] {
 	heap := &Heap[T]{}
 	heap.orderCriteria = sort
 	return heap
@@ -22,11 +18,11 @@ func HeapInit[T constraints.Ordered](sort func(T, T) bool) *Heap[T] {
 
 /*
 Creates a heap from an array. The order of the array does not matter;
-the elements are inserted into the heap in the order determined by the
+the elements are Inserted into the heap in the order determined by the
 sort function. For comparable data types, '>' makes a max-heap,
 '<' makes a min-heap.
 */
-func HeapSliceInit[T constraints.Ordered](slice []T, sort func(T, T) bool) *Heap[T] {
+func HeapSliceInit[T comparable](slice []T, sort func(T, T) bool) *Heap[T] {
 	heap := &Heap[T]{}
 	heap.orderCriteria = sort
 	heap.configureHeap(&slice)
@@ -45,15 +41,15 @@ func (self *Heap[T]) configureHeap(slice *[]T) {
 
 }
 
-func (self *Heap[T]) isEmpty() bool {
+func (self *Heap[T]) IsEmpty() bool {
 	if nodes := self.nodes; nodes != nil {
 		return len(nodes) == 0
 	}
 	return true
 }
 
-func (self *Heap[T]) count() int {
-	if !self.isEmpty() {
+func (self *Heap[T]) Count() int {
+	if !self.IsEmpty() {
 		return len(self.nodes)
 	}
 	return 0
@@ -89,8 +85,8 @@ func (self *Heap[T]) rightChildIndex(index int) int {
 Returns the maximum value in the heap (for a max-heap) or the minimum
 value (for a min-heap).
 */
-func (self *Heap[T]) peek() (T, bool) {
-	if self.isEmpty() {
+func (self *Heap[T]) Peek() (T, bool) {
+	if self.IsEmpty() {
 		var element T
 		return element, false
 	}
@@ -102,18 +98,18 @@ func (self *Heap[T]) peek() (T, bool) {
 Adds a new value to the heap. This reorders the heap so that the max-heap
 or min-heap property still holds. Performance: O(log n).
 */
-func (self *Heap[T]) insert(value T) {
+func (self *Heap[T]) Insert(value T) {
 	self.nodes = append(self.nodes, value)
-	self.shiftUp(self.count() - 1)
+	self.shiftUp(self.Count() - 1)
 }
 
 /*
 Adds a sequence of values to the heap. This reorders the heap so that
 the max-heap or min-heap property still holds. Performance: O(log n).
 */
-func (self *Heap[T]) insertSequence(sequence ...T) {
+func (self *Heap[T]) InsertSequence(sequence ...T) {
 	for _, value := range sequence {
-		self.insert(value)
+		self.Insert(value)
 	}
 }
 
@@ -121,26 +117,26 @@ func (self *Heap[T]) insertSequence(sequence ...T) {
 Allows you to change an element. This reorders the heap so that
 the max-heap or min-heap property still holds.
 */
-func (self *Heap[T]) replace(index int, value T) {
-	if index >= self.count() {
+func (self *Heap[T]) Replace(index int, value T) {
+	if index >= self.Count() {
 		return
 	}
 
-	self.popAt(index)
-	self.insert(value)
+	self.PopAt(index)
+	self.Insert(value)
 }
 
 /*
 Removes the root node from the heap. For a max-heap, this is the maximum
 value; for a min-heap it is the minimum value. Performance: O(log n).
 */
-func (self *Heap[T]) pop() (T, bool) {
-	if self.isEmpty() {
+func (self *Heap[T]) Pop() (T, bool) {
+	if self.IsEmpty() {
 		var value T
 		return value, false
 	}
 
-	if self.count() == 1 {
+	if self.Count() == 1 {
 		value := self.nodes[0]
 		self.nodes = self.nodes[1:]
 		return value, true
@@ -157,12 +153,12 @@ func (self *Heap[T]) pop() (T, bool) {
 Removes an arbitrary node from the heap. Performance: O(log n).
 Note that you need to know the node's index.
 */
-func (self *Heap[T]) popAt(index int) (T, bool) {
-	if index >= self.count() {
+func (self *Heap[T]) PopAt(index int) (T, bool) {
+	if index >= self.Count() {
 		var value T
 		return value, false
 	}
-	size := self.count() - 1
+	size := self.Count() - 1
 	if index != size {
 		self.nodes[index], self.nodes[size] = self.nodes[size], self.nodes[index]
 		self.shiftDown(index, size)
@@ -199,7 +195,7 @@ smaller (min-heap) than its childeren.
 func (self *Heap[T]) shiftDown(indicies ...int) {
 
 	if len(indicies) == 1 {
-		self.shiftDown(indicies[0], self.count())
+		self.shiftDown(indicies[0], self.Count())
 		return
 	}
 
@@ -234,7 +230,7 @@ func (self *Heap[T]) shiftDown(indicies ...int) {
 /*
 Get the index of a node in the heap. Performance: O(n).
 */
-func (self *Heap[T]) search(node T) int {
+func (self *Heap[T]) Search(node T) int {
 	for index, n := range self.nodes {
 		if n == node {
 			return index
@@ -246,10 +242,21 @@ func (self *Heap[T]) search(node T) int {
 /*
 Removes the first occurrence of a node from the heap. Performance: O(n).
 */
-func (self *Heap[T]) popNode(node T) (T, bool) {
-	if index := self.search(node); index != -1 {
-		return self.popAt(index)
+func (self *Heap[T]) PopNode(node T) (T, bool) {
+	if index := self.Search(node); index != -1 {
+		return self.PopAt(index)
 	}
 	var value T
 	return value, false
+}
+
+func (self *Heap[T]) IndexOf(node T) int {
+	if !self.IsEmpty() {
+		for index, n := range self.nodes {
+			if n == node {
+				return index
+			}
+		}
+	}
+	return -1
 }
