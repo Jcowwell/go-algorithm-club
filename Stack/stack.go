@@ -1,5 +1,9 @@
 package stack
 
+/*
+ Last-in first-out stack (LIFO)
+ Push and pop are O(1) operations.
+*/
 type Stack[T comparable] []T
 
 func (self *Stack[T]) IsEmpty() bool {
