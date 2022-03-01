@@ -1,23 +1,21 @@
 package stack
 
-import "golang.org/x/exp/constraints"
+type Stack[T comparable] []T
 
-type Stack[T constraints.Ordered] []T
-
-func (self *Stack[T]) isEmpty() bool {
+func (self *Stack[T]) IsEmpty() bool {
 	return len(*self) <= 0
 }
 
-func (self *Stack[T]) count() int {
+func (self *Stack[T]) Count() int {
 	return len(*self)
 }
 
-func (self *Stack[T]) push(element T) {
+func (self *Stack[T]) Push(element T) {
 	*self = append([]T{element}, *self...)
 }
 
-func (self *Stack[T]) pop() (T, bool) {
-	if self.isEmpty() {
+func (self *Stack[T]) Pop() (T, bool) {
+	if self.IsEmpty() {
 		var element T
 		return element, false
 	}
@@ -26,8 +24,8 @@ func (self *Stack[T]) pop() (T, bool) {
 	return element, true
 }
 
-func (self *Stack[T]) peek() (T, bool) {
-	if self.isEmpty() {
+func (self *Stack[T]) Peek() (T, bool) {
+	if self.IsEmpty() {
 		var element T
 		return element, false
 	}
@@ -35,8 +33,8 @@ func (self *Stack[T]) peek() (T, bool) {
 	return element, true
 }
 
-func (self *Stack[T]) search(element T) (int, bool) {
-	if !self.isEmpty() {
+func (self *Stack[T]) Search(element T) (int, bool) {
+	if !self.IsEmpty() {
 		for index, e := range *self {
 			if e == element {
 				return index, true
