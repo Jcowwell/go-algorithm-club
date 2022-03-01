@@ -5,7 +5,9 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// Binary Tree's Node Struct
+/*
+Binary Tree's Node Struct
+*/
 type BinaryTreeNode[T constraints.Ordered] struct {
 	value  T
 	left   *BinaryTreeNode[T]
@@ -13,7 +15,9 @@ type BinaryTreeNode[T constraints.Ordered] struct {
 	parent *BinaryTreeNode[T]
 }
 
-// Method to return number of subnodes. Runs in O(n) time.
+/*
+Method to return number of subnodes. Runs in O(n) time.
+*/
 func (self *BinaryTreeNode[T]) Count() int {
 	leftCount, rightCount := 0, 0
 	if left := self.left; left != nil {
@@ -25,7 +29,9 @@ func (self *BinaryTreeNode[T]) Count() int {
 	return leftCount + 1 + rightCount
 }
 
-// Method to return the distance of node to it's lowest leaf. Runs in O(h) time.
+/*
+Method to return the distance of node to it's lowest leaf. Runs in O(h) time.
+*/
 func (self *BinaryTreeNode[T]) Height() int {
 	if node := self; node != nil {
 		if node.IsLeaf() {
@@ -44,7 +50,9 @@ func (self *BinaryTreeNode[T]) Height() int {
 	return 0
 }
 
-// Method to return the distance of node from the root. Runs in O(h) time.
+/*
+Method to return the distance of node from the root. Runs in O(h) time.
+*/
 func (self *BinaryTreeNode[T]) Depth() int {
 	node := self
 	edges := 0
@@ -55,17 +63,23 @@ func (self *BinaryTreeNode[T]) Depth() int {
 	return edges
 }
 
-// Method to return True if node is root (Has no parent node). False otherwise.
+/*
+Method to return True if node is root (Has no parent node). False otherwise.
+*/
 func (self *BinaryTreeNode[T]) IsRoot() bool {
 	return self.parent != nil
 }
 
-// Method to return True if node is a leaf node (Has no left or right). False if otherwise.
+/*
+Method to return True if node is a leaf node (Has no left or right). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) IsLeaf() bool {
 	return self.left == nil && self.right == nil
 }
 
-// Method to return True if node is a left child (if parent.left == node). False if otherwise.
+/*
+Method to return True if node is a left child (if parent.left == node). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) IsLeftChild() bool {
 	if parent := self.parent; parent != nil {
 		return parent.left == self
@@ -73,7 +87,9 @@ func (self *BinaryTreeNode[T]) IsLeftChild() bool {
 	return false
 }
 
-// Method to return True if node is a right child (if parent.right == node). False if otherwise.
+/*
+Method to return True if node is a right child (if parent.right == node). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) IsRightChild() bool {
 	if parent := self.parent; parent != nil {
 		return parent.right == self
@@ -81,29 +97,39 @@ func (self *BinaryTreeNode[T]) IsRightChild() bool {
 	return false
 }
 
-// Method to return True if node Has a left child (if node.left != nil). False if otherwise.
+/*
+Method to return True if node Has a left child (if node.left != nil). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) HasLeftChild() bool {
 	return self.left != nil
 }
 
-// Method to return True if node Has a right child (if node.right != nil). False if otherwise.
+/*
+Method to return True if node Has a right child (if node.right != nil). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) HasRightChild() bool {
 	return self.right != nil
 }
 
-// Method to return True if node Has a left or right child (if HasLeftChild || HasRightChild). False if otherwise.
+/*
+Method to return True if node Has a left or right child (if HasLeftChild || HasRightChild). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) HasAnyChildren() bool {
 	return self.HasLeftChild() || self.HasRightChild()
 }
 
-// Method to return True if node Has both children (if HasLeftChild && HasRightChild). False if otherwise.
+/*
+Method to return True if node Has both children (if HasLeftChild && HasRightChild). False if otherwise.
+*/
 func (self *BinaryTreeNode[T]) HasBothChildren() bool {
 	return self.HasLeftChild() && self.HasRightChild()
 }
 
 // Tranversal methods are based on Rosetta Code: https://rosettacode.org/wiki/Tree_traversal#Flat_slice
 
-// Method to Iterate node in preorder order (node, left, right)
+/*
+Method to Iterate node in preorder order (node, left, right)
+*/
 func (self *BinaryTreeNode[T]) IterPreOrder(process func(T)) {
 	if self == nil {
 		return
@@ -114,7 +140,9 @@ func (self *BinaryTreeNode[T]) IterPreOrder(process func(T)) {
 	self.right.IterPreOrder(process)
 }
 
-// Method to Iterate node in inorder order (left, node, right)
+/*
+Method to Iterate node in inorder order (left, node, right)
+*/
 func (self *BinaryTreeNode[T]) IterInOrder(process func(T)) {
 	if self == nil {
 		return
@@ -125,7 +153,9 @@ func (self *BinaryTreeNode[T]) IterInOrder(process func(T)) {
 	self.right.IterInOrder(process)
 }
 
-// Method to Iterate node in postorder order (left, right, node)
+/*
+Method to Iterate node in postorder order (left, right, node)
+*/
 func (self *BinaryTreeNode[T]) IterPostOrder(process func(T)) {
 	if self == nil {
 		return
@@ -136,7 +166,9 @@ func (self *BinaryTreeNode[T]) IterPostOrder(process func(T)) {
 	process(self.value)
 }
 
-// Method to reverse node (left, node, right) -> (right, node, left)
+/*
+Method to reverse node (left, node, right) -> (right, node, left)
+*/
 func (self *BinaryTreeNode[T]) Invert() {
 	left, right := self.left, self.right
 	left, right = right, left
@@ -144,24 +176,32 @@ func (self *BinaryTreeNode[T]) Invert() {
 	right.Invert()
 }
 
-// Binary Tree Struct
+/*
+Binary Tree Struct
+*/
 type BinaryTree[T constraints.Ordered] struct {
 	root *BinaryTreeNode[T]
 }
 
-// Constructor Function to return a new Binary Tree.
+/*
+Constructor Function to return a new Binary Tree.
+*/
 func BinaryTreeInit[T constraints.Ordered](values ...T) *BinaryTree[T] {
 	tree := &BinaryTree[T]{root: &BinaryTreeNode[T]{value: values[0]}}
 	panic("implement insertion")
 	return tree
 }
 
-// Method to return True if tree is currently empty (rootless). False otherwise.
+/*
+Method to return True if tree is currently empty (rootless). False otherwise.
+*/
 func (self *BinaryTree[T]) IsEmpty() bool {
 	return self.root == nil
 }
 
-// Method to return the distance of node to it's lowest leaf. Runs in O(h) time.
+/*
+Method to return the distance of node to it's lowest leaf. Runs in O(h) time.
+*/
 func (self *BinaryTree[T]) Count() int {
 	if root := self.root; root != nil {
 		return root.Count()
@@ -169,7 +209,9 @@ func (self *BinaryTree[T]) Count() int {
 	return 0
 }
 
-// Method to return the largest # of edges in a path from the tree's root to a leaf node.
+/*
+Method to return the largest # of edges in a path from the tree's root to a leaf node.
+*/
 func (BT *BinaryTree[T]) Height() int {
 	if root := BT.root; root == nil {
 		return root.Height()
@@ -178,7 +220,9 @@ func (BT *BinaryTree[T]) Height() int {
 	return -1
 }
 
-// Method to Iterate tree in preorder order (node, left, right).
+/*
+Method to Iterate tree in preorder order (node, left, right).
+*/
 func (BT *BinaryTree[T]) TranversePreOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
@@ -187,7 +231,9 @@ func (BT *BinaryTree[T]) TranversePreOrder(process func(T)) {
 	root.IterPreOrder(process)
 }
 
-// Method to Iterate node in inorder order (left, node, right).
+/*
+Method to Iterate node in inorder order (left, node, right).
+*/
 func (BT *BinaryTree[T]) TranverseInOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
@@ -196,7 +242,9 @@ func (BT *BinaryTree[T]) TranverseInOrder(process func(T)) {
 	root.IterInOrder(process)
 }
 
-// Method to Iterate node in postorder order (left, right, node).
+/*
+Method to Iterate node in postorder order (left, right, node).
+*/
 func (BT *BinaryTree[T]) TranversePostOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
@@ -205,7 +253,9 @@ func (BT *BinaryTree[T]) TranversePostOrder(process func(T)) {
 	root.IterPostOrder(process)
 }
 
-// Method to Iterate node in postorder order (left, right, node).
+/*
+Method to Iterate node in postorder order (left, right, node).
+*/
 func (BT *BinaryTree[T]) TranverseLevelOrder(process func(T)) {
 	root := BT.root
 	if root == nil {
@@ -230,7 +280,9 @@ func (BT *BinaryTree[T]) TranverseLevelOrder(process func(T)) {
 	}
 }
 
-// Method to Invert tree.
+/*
+Method to Invert tree.
+*/
 func (BT *BinaryTree[T]) Invert() {
 	root := BT.root
 	if root == nil {
@@ -239,7 +291,9 @@ func (BT *BinaryTree[T]) Invert() {
 	root.Invert()
 }
 
-// Static Private Function that comapres two binary tree and returns True if they're equal. False otherwise.
+/*
+Public Static Private Function that comapres two binary tree and returns True if they're equal. False otherwise.
+*/
 func equalNode[T constraints.Ordered](p, q *BinaryTreeNode[T]) bool {
 	if p == nil && q == nil {
 		return true
@@ -250,7 +304,9 @@ func equalNode[T constraints.Ordered](p, q *BinaryTreeNode[T]) bool {
 	return equalNode(p.left, q.right) && equalNode(p.right, q.right)
 }
 
-// Staric Function that comapres two nodes and returns True if they're equal. False otherwise.
+/*
+Public Static Function that comapres two nodes and returns True if they're equal. False otherwise.
+*/
 func EqualTree[T constraints.Ordered](p, q *BinaryTree[T]) bool {
 	if p == nil && q == nil {
 		return true
