@@ -60,6 +60,16 @@ func GreaterThan[T constraints.Ordered](a, b T) bool {
 	return a > b
 }
 
+func Filter[T constraints.Ordered](elements []T, function func(e T) bool) []T {
+	filteredElements := []T{}
+	for _, element := range elements {
+		if function(element) {
+			filteredElements = append(filteredElements, element)
+		}
+	}
+	return filteredElements
+}
+
 func Hash[A comparable](a A) uintptr {
 	var m interface{} = make(map[A]struct{})
 	hf := (*mh)(*(*unsafe.Pointer)(unsafe.Pointer(&m))).hf
