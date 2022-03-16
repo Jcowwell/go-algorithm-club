@@ -7,170 +7,408 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type Pair[T constraints.Ordered] struct {
-	x    T
-	y    T
-	init bool
-}
-
-func (self Pair[T]) Compare(other Pair[T]) int {
-	if self.x < other.x {
-		return -1
-	}
-	if self.x > other.x {
-		return 1
-	}
-	if self.y < other.y {
-		return -1
-	}
-	if self.y < other.y {
-		return 1
-	}
-	return 0 // x and y must equal eachother
-}
-
-func PairInit[T constraints.Ordered](x, y T) *Pair[T] {
-	return &Pair[T]{x: x, y: y, init: true}
-}
-
-type PointType int
+type PointType int // Point Enum Type
 
 const (
-	OpenPoint      PointType = iota // exclusive Point
-	ClosedPoint                     // inclusive Point
+	OpenPoint      PointType = iota // exclusive point
+	ClosedPoint                     // inclusive point
 	UnboundedPoint                  // infinity
 )
 
+/* Point Type to represent a number on a number line. */
 type Point[N Numeric] struct {
 	value     N
 	pointType PointType
 }
 
-// func (self Point[N]) Compare(point Point[N]) int {
-// 	if self.pointType == point.pointType {
-// 		if self.value < point.value {
-// 			return -1
-// 		} else if self.value > point.value {
-// 			return 1
-// 		} else {
-// 			return 0
-// 		}
-// 	}
+/* Private function that calculates which start point should be used for interval intersection */
+func startPointIntersect[N Numeric](a, b Point[N]) Point[N] {
+	if a.value == b.value {
+		if a.pointType < b.pointType {
+			return a
+		} else {
+			return b
+		}
+	} else if a.value > b.value {
+		return a
+	} else {
+		return b
+	}
+}
 
-// }
+/* Private function that calculates which end point should be used for interval intersection */
+func endPointIntersect[N Numeric](c, d Point[N]) Point[N] {
+	if c.value == d.value {
+		if c.pointType < d.pointType {
+			return c
+		} else {
+			return d
+		}
+	} else if c.value < d.value {
+		return c
+	} else {
+		return d
+	}
+}
 
-type IntervalType int
+type IntervalType int // Interval Enum Type
 
 const (
 	EmptyInterval       IntervalType = iota
-	OpenInterval                     // {x | a < x < b}
-	ClosedInterval                   // {x | a <= x <= b}
-	OpenClosedInterval               // {x | a < x <= b}
-	ClosedOpenInterval               // {x | a <= x < b}
-	GreaterThanInterval              // {x | x > a}
-	AtLeastInterval                  // {x | x >= a}
-	LessThanInterval                 // {x | x < b}
-	AtMostInterval                   // {x | x <= b}
-	UnboundedInterval                // {x}
+	DegenerateInterval               // [a,a] = {a}
+	OpenInterval                     // (a,b) = {x | a < x < b}
+	ClosedInterval                   // [a,b] = {x | a <= x <= b}
+	OpenClosedInterval               // (a,b] = {x | a < x <= b}
+	ClosedOpenInterval               // [a,b) = {x | a <= x < b}
+	GreaterThanInterval              // (a,+∞) = {x | x > a}
+	AtLeastInterval                  // [a,+∞) = {x | x >= a}
+	LessThanInterval                 // (-∞,b) = {x | x < b}
+	AtMostInterval                   // (-∞,b] = {x | x <= b}
+	UnboundedInterval                // (-∞,+∞) = {x}
 )
 
 type Interval[I constraints.Integer] struct {
-	lowerBound   Point[I] // lowerBound
-	upperBound   Point[I] // upperBound
+	lowerBound   Point[I] // start point of interval
+	upperBound   Point[I] // end point of interval
+	values       []I      // values of an interval. For unbounded intervals values will be nil
 	intervalType IntervalType
 }
 
-func IntervalInit[I constraints.Integer](lo, hi Point[I]) Interval[I] {
-	intervalType := setIntervalType(lo.pointType, hi.pointType)
-	return Interval[I]{lowerBound: lo, upperBound: hi, intervalType: intervalType}
+/*
+	private construction function to create an interval.
+
+	Parameters:
+		lo Point[I] Lowerbound Value
+		hi Point[I]	Higherbound Value
+	Return:
+		Interval[I] Interval Struct
+*/
+func createInterval[I constraints.Integer](start, end Point[I]) Interval[I] {
+	if start.value > end.value {
+		panic("The lowerbound endpoint cannot be higher than the upperbound endpoint")
+	}
+	interval := Interval[I]{lowerBound: start, upperBound: end}
+	interval.setIntervalType()
+	interval.setValues()
+	return interval
 }
 
-func setIntervalType(loType, hiType PointType) IntervalType {
+/* Private void method to set an interval's type. */
+func (self *Interval[I]) setIntervalType() {
+	var loType, hiType PointType = self.lowerBound.pointType, self.upperBound.pointType
+
+	/* OpenInterval */
 	if loType == OpenPoint && hiType == OpenPoint {
-		return OpenInterval
+		/* Empty Check: (a,a) = {} */
+		if self.lowerBound.value == self.upperBound.value {
+			self.intervalType = DegenerateInterval
+			return
+		}
+		self.intervalType = OpenInterval
+
+		/* ClosedInterval */
+	} else if loType == ClosedPoint && hiType == ClosedPoint {
+		/* Degenerate Check */
+		if self.lowerBound.value == self.upperBound.value {
+			self.intervalType = DegenerateInterval
+			return
+		}
+		self.intervalType = ClosedInterval
+
+		/* OpenClosedInterval Interval */
+	} else if loType == OpenPoint && hiType == ClosedPoint {
+		/* Empty Check: (a,a] = {} */
+		if self.lowerBound.value == self.upperBound.value {
+			self.intervalType = DegenerateInterval
+			return
+		}
+		self.intervalType = OpenClosedInterval
+
+		/* ClosedOpenInterval Interval */
+	} else if loType == ClosedPoint && hiType == OpenPoint {
+		/* Empty Check: [a,a) = {} */
+		if self.lowerBound.value == self.upperBound.value {
+			self.intervalType = DegenerateInterval
+			return
+		}
+		self.intervalType = ClosedOpenInterval
+
+		/* GreaterThanInterval Interval */
+	} else if loType == OpenPoint && hiType == UnboundedPoint {
+		self.intervalType = GreaterThanInterval
+
+		/* AtLeastInterval Interval */
+	} else if loType == ClosedPoint && hiType == UnboundedPoint {
+		self.intervalType = AtLeastInterval
+
+		/* LessThanInterval Interval */
+	} else if loType == UnboundedPoint && hiType == OpenPoint {
+		self.intervalType = LessThanInterval
+
+		/* AtMostInterval Interval */
+	} else if loType == UnboundedPoint && hiType == ClosedPoint {
+		self.intervalType = AtMostInterval
+
+		/* UnboundedInterval Interval */
+	} else if loType == UnboundedPoint && hiType == UnboundedPoint {
+		self.intervalType = UnboundedInterval
 	}
-	if loType == ClosedPoint && hiType == ClosedPoint {
-		return ClosedInterval
-	}
-	if loType == OpenPoint && hiType == ClosedPoint {
-		return OpenClosedInterval
-	}
-	if loType == ClosedPoint && hiType == OpenPoint {
-		return ClosedOpenInterval
-	}
-	if loType == OpenPoint && hiType == UnboundedPoint {
-		return GreaterThanInterval
-	}
-	if loType == ClosedPoint && hiType == UnboundedPoint {
-		return AtLeastInterval
-	}
-	if loType == UnboundedPoint && hiType == OpenPoint {
-		return LessThanInterval
-	}
-	if loType == UnboundedPoint && hiType == ClosedPoint {
-		return AtMostInterval
-	}
-	if loType == UnboundedPoint && hiType == UnboundedPoint {
-		return UnboundedInterval
-	}
-	return EmptyInterval
 }
 
-/* Interval Generation Functions */
+/*
+	Private void method to set an interval's set of values.
 
+	NOTE:
+	The initial implementaiton of this method populated endpoints with the interval's start and stop *inclusive* endpoints
+	for a user to use (i.e iteration). This was problematic when met with edge cases such as (1,2) where,
+	according to the previous logic, the endpoint slice would be []int{2,1}.
+	This would defeat the original purpose of the method.
+	Instead it will be a method to directy create a slice that holds the inclusive values of valid bounded intervals.
+*/
+func (self *Interval[I]) setValues() {
+	switch self.intervalType {
+	case DegenerateInterval:
+		self.values = append(self.values, self.lowerBound.value)
+	case OpenInterval:
+		for n := self.lowerBound.value + 1; n < self.upperBound.value; n++ {
+			self.values = append(self.values, n)
+		}
+		break
+	case ClosedInterval:
+		for n := self.lowerBound.value; n <= self.upperBound.value; n++ {
+			self.values = append(self.values, n)
+		}
+		break
+	case OpenClosedInterval:
+		for n := self.lowerBound.value + 1; n <= self.upperBound.value; n++ {
+			self.values = append(self.values, n)
+		}
+		break
+	case ClosedOpenInterval:
+		for n := self.lowerBound.value; n < self.upperBound.value; n++ {
+			self.values = append(self.values, n)
+		}
+		break
+	/* Unbounded (and Unbounded Hybrid) types cannot set a value type since they are not finite */
+	case EmptyInterval, GreaterThanInterval, AtLeastInterval, LessThanInterval, AtMostInterval, UnboundedInterval:
+		break
+	}
+}
+
+/* SECTION: Interval Generation Functions */
+
+/*
+	Public Construction Function to generate an interval.
+
+	Parameters:
+		LowerBound Point[I] 	Start endpoint of interval.
+		HigherBound Point[I]	End endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+*/
+func GenerateInterval[I constraints.Integer](lowerBound, upperBound Point[I]) Interval[I] {
+	return createInterval(lowerBound, upperBound)
+}
+
+/*
+
+	Public Function to generate an Empty Interval.
+
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	Emptend Intervals can be created when there is an intersection between
+	two intervals that do not intersect (b_start > a_end || a_start > b_end),
+	if the intervals intersection is open and closed around the same point ex : {(1,3] ∩ (-∞, 2) => (1,2)},
+	or if the interval intersection is  at the same point but one point is Open
+	and the other Closed ex: {(2,3] ∩ (-1, 2]}
+*/
 func GenerateEmptyInterval[I constraints.Integer]() Interval[I] {
 	return Interval[I]{}
 }
 
-func GenerateOpenInterval[I constraints.Integer](x, y I) Interval[I] {
-	xPoint := Point[I]{value: x, pointType: OpenPoint}
-	yPoint := Point[I]{value: y, pointType: ClosedPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate an Open Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+		end I		End endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateOpenInterval[I constraints.Integer](start, end I) Interval[I] {
+	lowerBound := Point[I]{value: start, pointType: OpenPoint}
+	higherBound := Point[I]{value: end, pointType: OpenPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func GenerateClosedInterval[I constraints.Integer](x, y I) Interval[I] {
-	xPoint := Point[I]{value: x, pointType: ClosedPoint}
-	yPoint := Point[I]{value: y, pointType: ClosedPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate a Closed Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+		end I		End endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateClosedInterval[I constraints.Integer](start, end I) Interval[I] {
+	lowerBound := Point[I]{value: start, pointType: ClosedPoint}
+	higherBound := Point[I]{value: end, pointType: ClosedPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func GenerateClosedOpenInterval[I constraints.Integer](x, y I) Interval[I] {
-	xPoint := Point[I]{value: x, pointType: ClosedPoint}
-	yPoint := Point[I]{value: y, pointType: OpenPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate a OpenClosed Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+		end I		End endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateOpenClosedInterval[I constraints.Integer](start, end I) Interval[I] {
+	lowerBound := Point[I]{value: start, pointType: OpenPoint}
+	higherBound := Point[I]{value: end, pointType: ClosedPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func GenerateGreaterThanInterval[I constraints.Integer](x I) Interval[I] {
-	xPoint := Point[I]{value: x, pointType: OpenPoint}
-	yPoint := Point[I]{value: I(math.Inf(0)), pointType: UnboundedPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate a ClosedOpen Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+		end I		End endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateClosedOpenInterval[I constraints.Integer](start, end I) Interval[I] {
+	lowerBound := Point[I]{value: start, pointType: ClosedPoint}
+	higherBound := Point[I]{value: end, pointType: OpenPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func GenerateAtLeastInterval[I constraints.Integer](x I) Interval[I] {
-	xPoint := Point[I]{value: x, pointType: ClosedPoint}
-	yPoint := Point[I]{value: I(math.Inf(0)), pointType: UnboundedPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate a GreaterThan Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateGreaterThanInterval[I constraints.Integer](start I) Interval[I] {
+	lowerBound := Point[I]{value: start, pointType: OpenPoint}
+	higherBound := Point[I]{value: I(math.Inf(0)), pointType: UnboundedPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func GenerateLessThanInterval[I constraints.Integer](y I) Interval[I] {
-	xPoint := Point[I]{value: I(math.Inf(-1)), pointType: UnboundedPoint}
-	yPoint := Point[I]{value: y, pointType: OpenPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate a AtLeast Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateAtLeastInterval[I constraints.Integer](start I) Interval[I] {
+	lowerBound := Point[I]{value: start, pointType: ClosedPoint}
+	higherBound := Point[I]{value: I(math.Inf(0)), pointType: UnboundedPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func GenerateAtMostInterval[I constraints.Integer](y I) Interval[I] {
-	xPoint := Point[I]{value: I(math.Inf(-1)), pointType: UnboundedPoint}
-	yPoint := Point[I]{value: y, pointType: ClosedPoint}
-	return IntervalInit(xPoint, yPoint)
+/*
+	Public Function to generate a LessThan Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateLessThanInterval[I constraints.Integer](end I) Interval[I] {
+	lowerBound := Point[I]{value: I(math.Inf(-1)), pointType: UnboundedPoint}
+	higherBound := Point[I]{value: end, pointType: OpenPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
+/*
+	Public Function to generate a AtMost Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func GenerateAtMostInterval[I constraints.Integer](end I) Interval[I] {
+	lowerBound := Point[I]{value: I(math.Inf(-1)), pointType: UnboundedPoint}
+	higherBound := Point[I]{value: end, pointType: ClosedPoint}
+	return createInterval(lowerBound, higherBound)
+}
+
+/*
+	Public Function to generate a Unbounded Interval.
+
+	Parameters:
+		start I 	Start endpoint of interval.
+	Return:
+		Interval[I] Interval Struct
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers.
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
 func GenerateUnboundedInterval[I constraints.Integer]() Interval[I] {
-	xPoint := Point[I]{value: I(math.Inf(-1)), pointType: UnboundedPoint}
-	yPoint := Point[I]{value: I(math.Inf(0)), pointType: UnboundedPoint}
-	return IntervalInit(xPoint, yPoint)
+	lowerBound := Point[I]{value: I(math.Inf(-1)), pointType: UnboundedPoint}
+	higherBound := Point[I]{value: I(math.Inf(0)), pointType: UnboundedPoint}
+	return createInterval(lowerBound, higherBound)
 }
 
-func (self Interval[I]) Contains(value I) bool {
+/* !SECTION: Interval Generation Functions */
+
+/*
+	Public Boolean Method that returns true if a value is within an interval. False otherwise.
+
+	Parameters:
+		value I 	value of type Integer
+	Return:
+		bool
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers (I).
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func (self *Interval[I]) Contains(value I) bool {
 	switch self.intervalType {
 	case EmptyInterval:
 		return false
@@ -196,105 +434,59 @@ func (self Interval[I]) Contains(value I) bool {
 	return false
 }
 
-func (self Interval[I]) Count(value I) int {
+/*
+	Public Integer Method that returns the amount of numbers in an interval. Unbounded intervals
+	returns math.inf
+
+	Return:
+		int
+
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers (I).
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func (self *Interval[I]) Count() int {
 	switch self.intervalType {
 	case EmptyInterval:
 		return 0
-	case OpenInterval:
-		return int((self.upperBound.value - 1) - (self.lowerBound.value + 1))
-	case ClosedInterval:
-		return int((self.upperBound.value) - (self.lowerBound.value))
-	case OpenClosedInterval:
-		return int((self.upperBound.value - 1) - (self.lowerBound.value))
-	case ClosedOpenInterval:
-		return int((self.upperBound.value) - (self.lowerBound.value + 1))
+	case DegenerateInterval:
+		return 1
+	case OpenInterval, ClosedInterval, OpenClosedInterval, ClosedOpenInterval:
+		return len(self.values)
 	case GreaterThanInterval, AtLeastInterval, LessThanInterval, AtMostInterval, UnboundedInterval:
 		return int(math.Inf(0))
 	}
 	return 0
 }
 
-func (self Interval[I]) ToSlice() []I {
-	interval := []I{}
-	switch self.intervalType {
-	case EmptyInterval:
-		break
-	case OpenInterval:
-		for x := self.lowerBound.value + 1; x < self.upperBound.value; x++ {
-			interval = append(interval, x)
-		}
-		break
-	case ClosedInterval:
-		for x := self.lowerBound.value; x <= self.upperBound.value; x++ {
-			interval = append(interval, x)
-		}
-		break
-	case OpenClosedInterval:
-		for x := self.lowerBound.value + 1; x <= self.upperBound.value; x++ {
-			interval = append(interval, x)
-		}
-		break
-	case ClosedOpenInterval:
-		for x := self.lowerBound.value + 1; x < self.upperBound.value; x++ {
-			interval = append(interval, x)
-		}
-		break
-	case GreaterThanInterval:
-		for x := self.lowerBound.value + 1; x < math.MaxInt8; x++ {
-			interval = append(interval, (x))
-		}
-		break
-	case AtLeastInterval:
-		for x := self.lowerBound.value; x < math.MaxInt8; x++ {
-			interval = append(interval, x)
-		}
-		break
-	case LessThanInterval:
-		for x := self.upperBound.value - 1; x > math.MaxInt8; x-- {
-			interval = append(interval, x)
-		}
-		break
-	case AtMostInterval:
-		for x := self.upperBound.value; x > math.MaxInt8; x-- {
-			interval = append(interval, x)
-		}
-		break
-	case UnboundedInterval:
-		for x := math.MinInt8; x > math.MaxInt8; x-- {
-			interval = append(interval, I(x))
-		}
-		break
-	}
-	return interval
-}
+/*
+	Public Interval Function that returns the intersect (∩) between two intervals.
 
-func (self Interval[I]) Intersect(interval Interval[I]) {
-	if interval.intervalType == EmptyInterval {
-		return
-	}
-	a, b := self.lowerBound.value, self.upperBound.value
-	c, d := interval.lowerBound.value, interval.upperBound.value
+	Parameters:
+		a Interval[I]
+		b Interval[I]
+	Return:
+		c Interval[I]	a ∩ b
 
-	if self.lowerBound.pointType == OpenPoint {
-		a += 1
+	FIXME: Add support for Numerics {N} over integers {I}
+	The current implementation of Intervals only support Integers (I).
+	Once Golang supports a more mature Generics this method should be updated to support Numerics.
+*/
+func Intersect[I constraints.Integer](a, b Interval[I]) Interval[I] {
+	/* an intersection involving an Empty Interval always results in an Empty Interval */
+	if a.intervalType == EmptyInterval || b.intervalType == EmptyInterval {
+		return GenerateEmptyInterval[I]()
 	}
-	if self.upperBound.pointType == OpenPoint {
-		b -= 1
-	}
-	if interval.lowerBound.pointType == OpenPoint {
-		c += 1
-	}
-	if interval.upperBound.pointType == OpenPoint {
-		d -= 1
+	/* adopted from: https://stackoverflow.com/a/325964/6427171. Checks if the two intervals intersect. */
+	if Max(a.lowerBound.value, b.lowerBound.value) > Min(a.upperBound.value, b.upperBound.value) {
+		return GenerateEmptyInterval[I]()
+	} else { /* the intervals intersect */
+		start, end := startPointIntersect(a.lowerBound, b.lowerBound), endPointIntersect(a.upperBound, b.upperBound)
+		return GenerateInterval(start, end)
 	}
 }
 
-// func IntersectIntervals[I constraints.Integer](intervals ...Interval[I]) Interval[I] {
-// 	itvl := GenerateEmptyInterval()
-// 	for _, interval := range intervals {
-
-// 	}
-// }
+/* DEPRECIATE: Use Interval instead. */
 
 type Range[T Numeric] []T
 
